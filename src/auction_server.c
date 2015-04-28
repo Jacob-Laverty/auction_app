@@ -17,12 +17,30 @@ void read_opts(int argc, char **argv) {
   }
 }
 
+void init_thread_list() {
+  thread_list = calloc(MAX_CLIENTS, sizeof(thread_list));
+}
+
 void create_socket() {
   socket_fd = socket(SERVER_FAMILY, SOCK_STREAM, 0);
 }
 
+void *client_server_thread(int *client_fd) {
+  char buf[1024];
+  while(1) {
+    memset(buf, 0, 1024);
+    read(*client_fd, buf, 1024);
+    if(buf[0] != 0) {
+      printf("%s\n", buf);
+    }
+    sleep(1);
+  }
+}
+
 int main(int argc, char **argv) {
-  void read_opts();
+  init_thread_list();
+  read_opts(argc, argv);
+
   if(port == 0) {
     port = DEFAULT_PORT;
   }
@@ -37,14 +55,14 @@ int main(int argc, char **argv) {
   bind(socket_fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
   listen(socket_fd, 10);
 
-  char buf[1024];
   while(1) {
     int connect_fd = accept(socket_fd, NULL, NULL);
 
-    read(connect_fd, buf, 1024);
-    printf("%s\n", buf);
+    if(connect_fd != -1) {
+      pthread_create(&(*thread_list), NULL, client_server_thread, &connect_fd); 
+      thread_list++;
+    }
   }
-
   return 0;
 }
 
