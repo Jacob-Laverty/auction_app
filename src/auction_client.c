@@ -31,6 +31,19 @@ void create_socket() {
   socket_fd = socket(SERVER_FAMILY, SERVER_TYPE, 0); 
 }
 
+void *server_listen(int *server_fd_listener) {
+  printf("Client listener thread initialized\n");
+  char server_resp[1024];
+  while(1) {
+    memset(server_resp, 0, 1024);
+    read(*server_fd_listener, server_resp, 1024);
+    if(server_resp[0] != 0) {
+      printf("%s\n", server_resp);
+    }
+    sleep(1);
+  }
+}
+
 int main(int argc, char** argv) {
   read_opts(argc, argv);
 
@@ -43,6 +56,7 @@ int main(int argc, char** argv) {
   int cli = inet_pton(SERVER_FAMILY, host, &sockAddr.sin_addr);
   connect(socket_fd, (struct sockaddr *)&sockAddr, sizeof(sockAddr));
 
+  pthread_create(&server_listener, NULL, server_listen, &socket_fd);
   printf("Client initialized\n");
   while(1) {
     memset(input_buffer, 0, BUFFER_SIZE);
