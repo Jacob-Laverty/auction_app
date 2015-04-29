@@ -2,10 +2,12 @@
 #define AUCTION_SERVER_H
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #define MAX_BUYERS 10
 #define MAX_SELLERS 1
@@ -22,25 +24,28 @@
 #define SELL "sell"
 //End command list
 
-typedef struct BuyerNodeStruct {
-  char buyer_name[32];
-  int bid;
-  struct BuyerNodeStruct *next;
-} BuyerNode;
+typedef struct WinningNodeStruct {
+  int item;
+  struct WinningNodeStruct* next;
+} WinningNode;
 
 typedef struct ItemNodeStruct {
   char item_name[32];
   int item_uid;
   struct ItemNodeStruct *next;
-  BuyerNode *buyers_head;
+  char highest_bidder[32];
+  int highest_bid;
 } ItemNode;
 
 int seller_port = DEFAULT_SELLER_PORT;
 int buyer_port = DEFAULT_BUYER_PORT;
+
 pthread_t* thread_list;
+pthread_mutex_t operation_mutex;
 
 void read_opts(int argc, char** argv);
 void init_thread_list();
+void init_ltem_list();
 void create_sockets();
 void *client_server_thread(int*);
 
